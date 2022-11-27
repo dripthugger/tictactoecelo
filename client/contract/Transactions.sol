@@ -11,21 +11,23 @@ pragma solidity >=0.8.7;
  */
 contract Transactions {
 
+    mapping (address => uint256) userFunds;
     /**
     * @notice function to deposit funds from user's balance to the contract
-    * @return uint256
     */
-    function deposit() external payable returns (uint256){
+    function deposit() external payable{
+        userFunds[msg.sender] += msg.value;
     }
 
     /**
     * @notice function to withdraw(reward) funds from the contract balance to user
     * @param _to user's address
     * @param _amount withdraw funds amount
-    * @param win_history winned game history
     */
-    function withdraw(address payable _to, uint _amount, string memory win_history) external {
+    function withdraw(address payable _to, uint _amount) external {
+        require(userFunds[_to] > _amount, "insufficient deposit amount");
         _to.transfer(_amount);
+        userFunds[_to] -= _amount;
     }
 
     /**
