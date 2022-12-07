@@ -24,7 +24,7 @@ contract Transactions {
     * @param _to user's address
     * @param _amount withdraw funds amount
     */
-    function withdraw(address payable _to, uint _amount) external {
+    function withdraw(address payable _to, uint _amount, string memory win_history) external {
         require(userFunds[_to] > _amount, "insufficient deposit amount");
         _to.transfer(_amount);
         userFunds[_to] -= _amount;
