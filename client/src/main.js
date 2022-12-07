@@ -11,8 +11,9 @@ const transactions_address = "0xc91b4c6206c18300aAbF8C2C60EE41fd5A3e96d2";
 // contract address to manipulate with nft's
 const nft_address = "0x6CDb04E6837B2b322E2D15D86d3793F84f47f41F";
 
-// Server domain, if it is local, it would be http://localhost:5000
-const domain_ = "https://tictactoeserver-production-01f3.up.railway.app";
+// Server domain, currently it is local
+
+const domain_ = "http://localhost:5000";
 
 const web3 = new Web3(window.celo);
 
@@ -70,19 +71,34 @@ const loadAchievements = async function () {
       $("button.claim_nft_win").on('click', async function () {
         let wins_count = $(this).attr('value');
         console.log(nft_contract)
-        await nft_contract.methods.safeMint(kit.defaultAccount, wins_count)
-          .send({ from: kit.defaultAccount })
-          .then(async function (receipt) {
-            // ID of minted NFT
-            let token_id = receipt.events.Transfer.returnValues.tokenId;
-            // Saving ID on the server
-            $.ajax({
-              url: `${domain_}/save_mint/?address=${address}&wins_count=${wins_count}&token_id=${token_id}`,
-              dataType: 'json',
-              success: function (json) { }
-            });
-            window.location.href = window.location.href;
-          });
+
+        let address = kit.defaultAccount.toString();
+        $.ajax({
+          url: `${domain_}/winner_hashes/?address=${address.toLowerCase()}`,
+          dataType: 'json',
+          crossDomain: true,
+          success: async function (json) {
+
+            win_hashes = JSON.parse(json.result).reverse();
+            if (win_hashes.length >= wins_count) {
+              await nft_contract.methods.safeMint(kit.defaultAccount, wins_count)
+                .send({ from: kit.defaultAccount })
+                .then(async function (receipt) {
+                  // ID of minted NFT
+                  let token_id = receipt.events.Transfer.returnValues.tokenId;
+                  // Saving ID on the server
+                  $.ajax({
+                    url: `${domain_}/save_mint/?address=${address}&wins_count=${wins_count}&token_id=${token_id}`,
+                    dataType: 'json',
+                    success: function (json) { }
+                  });
+                  window.location.href = window.location.href;
+                });
+            }
+          }
+        })
+
+
       })
     }
   });

@@ -54,8 +54,9 @@
 </head>
 <script>
 
-    // Server domain, if it is local, it would be https://localhost:5000
-    let socket = io.connect('https://tictactoeserver-production-01f3.up.railway.app', { transports: ['websocket'] }),
+    // Server domain, currently it is local
+
+    let socket = io.connect('https://localhost:5000', { transports: ['websocket'] }),
 
         history = "";
 
