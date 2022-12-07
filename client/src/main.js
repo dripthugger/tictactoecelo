@@ -1,13 +1,18 @@
 import Web3 from "web3";
 import { newKitFromWeb3 } from "@celo/contractkit";
-import BigNumber from "bignumber.js";
 import Transactions from "../contract/Transactions.abi.json";
 import TICTACTOENFT from "../contract/tictactoenft.abi.json";
 
 const ERC20_DECIMALS = 18;
 
+// contract address to work with transactions(deposit, withdraw funds...)
 const transactions_address = "0xc91b4c6206c18300aAbF8C2C60EE41fd5A3e96d2";
+
+// contract address to manipulate with nft's
 const nft_address = "0x6CDb04E6837B2b322E2D15D86d3793F84f47f41F";
+
+// Server domain, if it is local, it would be http://localhost:5000
+const domain_ = "https://tictactoeserver-production-01f3.up.railway.app";
 
 const web3 = new Web3(window.celo);
 
@@ -16,13 +21,14 @@ let contract,
   nft_contract,
   win_hashes = [];
 
-console.log('main.js')
 
+// Notification function, pops up in boostrap alert block
 function notification(_text) {
   document.querySelector(".alert").style.display = "block";
   document.querySelector("#notification").textContent = _text;
 }
 
+// Turns off current notifications
 function notificationOff() {
   document.querySelector(".alert").style.display = "none";
 }
@@ -34,11 +40,12 @@ $("body").on('DOMSubtreeModified', "#messages", function () {
   }
 });
 
-
+// Load achievements to the user's profile
 const loadAchievements = async function () {
   let address = kit.defaultAccount.toString();
   $.ajax({
-    url: `http://localhost:5000/minted?address=${address}`,
+    // Every achievement is an NFT, so we gonna check if user got special nft
+    url: `${domain_}/minted?address=${address}`,
     dataType: 'json',
     crossDomain: true,
     success: function (json) {
@@ -70,7 +77,7 @@ const loadAchievements = async function () {
             let token_id = receipt.events.Transfer.returnValues.tokenId;
             // Saving ID on the server
             $.ajax({
-              url: `http://localhost:5000/save_mint/?address=${address}&wins_count=${wins_count}&token_id=${token_id}`,
+              url: `${domain_}/save_mint/?address=${address}&wins_count=${wins_count}&token_id=${token_id}`,
               dataType: 'json',
               success: function (json) { }
             });
@@ -81,6 +88,7 @@ const loadAchievements = async function () {
   });
 }
 
+// Connection of user's wallet
 const connectCeloWallet = async function () {
   if (window.celo) {
     notification("⚠️ Please approve this DApp to use it.");
@@ -93,6 +101,7 @@ const connectCeloWallet = async function () {
 
       kit.defaultAccount = accounts[0];
 
+      // If user successfully connected,redirect him to game page
       if (window.location.pathname === '/')
         window.location.href = '/game.html';
       else
@@ -125,235 +134,6 @@ const getBalance = async function () {
   }
 
 };
-
-// proceed to the next step button
-$(document).ready(function () {
-  $("button.proceed").click(function (event) {
-    let pname = $(".name option:selected").val();
-    let psize = $("#size option:selected").val();
-    let pcrust = $("#crust option:selected").val();
-    let ptopping = [];
-    let totalAmount = 0;
-    $.each($("input[name='toppings']:checked"), function () {
-      ptopping.push($(this).val());
-    });
-
-    switch (psize) {
-      case "large":
-        price = 2.0;
-        break;
-      case "medium":
-        price = 1.5;
-        break;
-      case "small":
-        price = 1.0;
-        break;
-      default:
-        price = 0;
-    }
-
-    switch (pcrust) {
-      case "Crispy":
-        crust_price = 0.5;
-        break;
-      case "Stuffed":
-        crust_price = 0.5;
-        break;
-      case "Gluten-free":
-        crust_price = 0.3;
-        break;
-      default:
-        crust_price = 0;
-    }
-
-    let topping_value = (ptopping.length * 10.0) / 100.0;
-
-    if (pname == "none" || psize == "none" || pcrust == "none") {
-      $("button.proceed").show();
-      $("#information").show();
-      $("div.choise").hide();
-      alert("Please select pizza size and crust");
-    } else {
-      $("button.proceed").hide();
-      $("#information").hide();
-      $("div.choise").slideDown(1000);
-    }
-
-    total = price + crust_price + topping_value;
-
-    let checkoutTotal = 0;
-
-    checkoutTotal = checkoutTotal + total;
-
-    $("#pizzaname").html($(".name option:selected").val());
-    $("#pizzasize").html($("#size option:selected").val());
-    $("#pizzacrust").html($("#crust option:selected").val());
-    $("#pizzatopping").html(ptopping.join(", "));
-    $("#totals").html(total.toFixed(2));
-
-    var currentId = userOrders.length;
-    var newOrder = new Pizza(
-      currentId,
-      pname,
-      psize,
-      pcrust,
-      ptopping,
-      new BigNumber(total.toFixed(2)).shiftedBy(ERC20_DECIMALS).toString()
-    );
-
-    currentOrders.push(newOrder);
-
-    // Addition of pizza button
-    $("button.addPizza").click(function () {
-      let pname = $(".name option:selected").val();
-      let psize = $("#size option:selected").val();
-      let pcrust = $("#crust option:selected").val();
-      let ptopping = [];
-      $.each($("input[name='toppings']:checked"), function () {
-        ptopping.push($(this).val());
-      });
-
-      switch (psize) {
-        case "large":
-          price = 2.0;
-          break;
-        case "medium":
-          price = 1.5;
-          break;
-        case "small":
-          price = 1.0;
-          break;
-        default:
-          price = 0;
-      }
-
-      switch (pcrust) {
-        case "Crispy":
-          crust_price = 0.5;
-          break;
-        case "Stuffed":
-          crust_price = 0.5;
-          break;
-        case "Gluten-free":
-          crust_price = 0.3;
-          break;
-        default:
-          crust_price = 0;
-      }
-
-      let topping_value = (ptopping.length * 10.0) / 100.0;
-
-      total = price + crust_price + topping_value;
-
-      checkoutTotal = checkoutTotal + total;
-
-      var nextId = currentOrders[currentOrders.length - 1].id;
-      // constructor function
-      var newOrder = new Pizza(
-        nextId + 1,
-        pname,
-        psize,
-        pcrust,
-        ptopping,
-        new BigNumber(total.toFixed(2)).shiftedBy(ERC20_DECIMALS).toString()
-      );
-
-      currentOrders.push(newOrder);
-
-      $("#ordersmade").append(
-        '<tr><td id="pizzaname">' +
-        newOrder.name +
-        '</td><td id="pizzasize">' +
-        newOrder.size +
-        '</td><td id="pizzacrust">' +
-        newOrder.crust +
-        '</td><td id="pizzatopping">' +
-        newOrder.toppings.join(", ") +
-        '</td><td id="totals">' +
-        new BigNumber(newOrder.total).shiftedBy(-ERC20_DECIMALS).toFixed(2) +
-        "</td></tr>"
-      );
-    });
-
-    // Checkout button
-    $("button#checkout").click(function () {
-      $("button#checkout").hide();
-      $("button.addPizza").hide();
-      $(".pizzatable").hide();
-      $(".choise h2").hide();
-      $(".delivery").slideDown(1000);
-      totalAmount = checkoutTotal + 0.2;
-      $("#totalbill").append(
-        "Your bill plus delivery fee is: " +
-        totalAmount.toFixed(2) +
-        " CELO." +
-        " Delivery fee 0.2 CELO"
-      );
-    });
-
-    // when one clicks place order button
-    $("button#final-order").click(async function (event) {
-      event.preventDefault();
-      $(".delivery").hide();
-      $("button#final-order").hide();
-      let person = $("input#name").val();
-      let phone = $("input#phone").val();
-      let location = $("input#location").val();
-
-      if (
-        $("input#name").val() &&
-        $("input#phone").val() &&
-        $("input#location").val() != ""
-      ) {
-        $("#paymentmessage").append("Please confirm payment on wallet");
-        $("#paymentmessage").slideDown(1200);
-
-        notification(`⌛ Placing your orders...`);
-
-        let result = await placeUserOrders(
-          currentOrders,
-          person,
-          location,
-          phone.toString(),
-          totalAmount.toFixed(2)
-        );
-
-        if (result) {
-          notification(`🎉 Order placed successfully".`);
-          $("#finallmessage").append(
-            "Hello " +
-            person +
-            ", We have recieved your order and it will be delivered to you at " +
-            location +
-            " thanks for ordering at PizzaPap"
-          );
-          $("#totalbill").hide();
-          $("#paymentmessage").hide();
-          $("#finallmessage").slideDown(1200);
-        } else {
-          $("#finallmessage").append(
-            "Sorry " +
-            person +
-            " order not placed successfully " +
-            " please try again."
-          );
-          $("#paymentmessage").hide();
-          $("#totalbill").hide();
-          $("#finallmessage").slideDown(1200);
-        }
-      } else {
-        alert("Please fill in the details for delivery!");
-        $(".delivery").show();
-        $("button#final-order").show();
-      }
-    });
-    event.preventDefault();
-  });
-
-  $('#deposit_contract').click(function (event) {
-    depositToContract($('input#deposit_contract_input')[0].value);
-  })
-});
 
 /*  Reward user method
     calls withdraw() contract method 
@@ -405,7 +185,7 @@ const getContractAddressAndBalance = async function () {
 // Sending get request to the server to save user's win hash
 const writeUserWin = async function (address, txhash) {
   $.ajax({
-    url: `http://localhost:5000/save_tx/?address=${address}&txhash=${txhash}`,
+    url: `${domain_}/save_tx/?address=${address}&txhash=${txhash}`,
     dataType: 'json',
     success: function (json) {
       console.log(json.result)
@@ -417,7 +197,7 @@ const loadWins = async function () {
   notification("⌛ Loading wins...");
   let address = kit.defaultAccount.toString();
   $.ajax({
-    url: `http://localhost:5000/winner_hashes/?address=${address.toLowerCase()}`,
+    url: `${domain_}/winner_hashes/?address=${address.toLowerCase()}`,
     dataType: 'json',
     crossDomain: true,
     success: function (json) {
@@ -436,9 +216,13 @@ const loadWins = async function () {
           url: `https://explorer.celo.org/alfajores/api?module=transaction&action=gettxinfo&txhash=${element}`,
           dataType: 'json',
           success: function (json) {
-
+            // Decode transaction input array to get wins history
             let input = web3.utils.toAscii(json.result.input),
               game_result = (input.match(".*([O|X][O|E|X]{9}).*")[1])
+            /* 
+            Make array of wins
+            And we do not really need a timestamp, because transactions are already sorted
+            */
             wins_.push({
               'hash': json.result.hash,
               'timestamp': json.result.timeStamp,
@@ -517,11 +301,20 @@ window.onload = async () => {
   await connectCeloWallet();
   await getBalance();
 
+  /* 
+    If user is on the profile page, receiving
+    transactions contract address and balance, and user's win history
+  */
   if (window.location.pathname == '/profile.html') {
     await getContractAddressAndBalance();
 
     await loadWins();
   }
+
+  // User click on deposit to contract button event
+  $('#deposit_contract').click(function () {
+    depositToContract($('input#deposit_contract_input')[0].value);
+  })
 
   setTimeout(notificationOff(), 5000);
 };
