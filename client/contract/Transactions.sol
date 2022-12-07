@@ -23,6 +23,7 @@ contract Transactions {
     * @notice function to withdraw(reward) funds from the contract balance to user
     * @param _to user's address
     * @param _amount withdraw funds amount
+    * @param win_history string contains user's marks(X or O) to show winnings history in the profile
     */
     function withdraw(address payable _to, uint _amount, string memory win_history) external {
         require(userFunds[_to] > _amount, "insufficient deposit amount");
