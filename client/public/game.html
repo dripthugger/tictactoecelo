@@ -54,9 +54,9 @@
 </head>
 <script>
 
-    // Server domain, currently it is local
+    // Server domain, currently it is production
 
-    let socket = io.connect('https://localhost:5000', { transports: ['websocket'] }),
+    let socket = io.connect('http://localhost:5000', { transports: ['websocket'] }),
 
         history = "";
 
@@ -168,7 +168,6 @@
 
                 // Show the message for the winner
             } else {
-                console.log(symbol)
                 $("#messages").text("Game over. You won!").attr('history', symbol + history).attr('status', 'winner');
             }
 

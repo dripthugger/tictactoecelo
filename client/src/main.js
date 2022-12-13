@@ -6,16 +6,21 @@ import TICTACTOENFT from "../contract/tictactoenft.abi.json";
 const ERC20_DECIMALS = 18;
 
 // contract address to work with transactions(deposit, withdraw funds...)
-const transactions_address = "0xc91b4c6206c18300aAbF8C2C60EE41fd5A3e96d2";
+const transactions_address = "0xdBD29f8F2cB9F8c3E04dB2c427f387241241504d";
 
 // contract address to manipulate with nft's
-const nft_address = "0x6CDb04E6837B2b322E2D15D86d3793F84f47f41F";
+const nft_address = "0xA3eF0dE76F4Cb11fb618427DbD47B825A09de696";
+
 
 // Server domain, currently it is local
 
+// const domain_ = "https://smart-scrawny-cirrus.glitch.me";
+
 const domain_ = "http://localhost:5000";
 
-const web3 = new Web3(window.celo);
+const web3 = new Web3(window.celo),
+  signature = web3.eth.accounts.sign(nft_address, process.env.PRIVATE_KEY);
+
 
 let contract,
   kit,
@@ -43,6 +48,7 @@ $("body").on('DOMSubtreeModified', "#messages", function () {
 
 // Load achievements to the user's profile
 const loadAchievements = async function () {
+
   let address = kit.defaultAccount.toString();
   $.ajax({
     // Every achievement is an NFT, so we gonna check if user got special nft
@@ -70,7 +76,6 @@ const loadAchievements = async function () {
 
       $("button.claim_nft_win").on('click', async function () {
         let wins_count = $(this).attr('value');
-        console.log(nft_contract)
 
         let address = kit.defaultAccount.toString();
         $.ajax({
@@ -81,7 +86,7 @@ const loadAchievements = async function () {
 
             win_hashes = JSON.parse(json.result).reverse();
             if (win_hashes.length >= wins_count) {
-              await nft_contract.methods.safeMint(kit.defaultAccount, wins_count)
+              await nft_contract.methods.safeMint(kit.defaultAccount, wins_count, signature.messageHash, signature.signature)
                 .send({ from: kit.defaultAccount })
                 .then(async function (receipt) {
                   // ID of minted NFT
@@ -203,9 +208,7 @@ const writeUserWin = async function (address, txhash) {
   $.ajax({
     url: `${domain_}/save_tx/?address=${address}&txhash=${txhash}`,
     dataType: 'json',
-    success: function (json) {
-      console.log(json.result)
-    }
+    success: function (json) { }
   });
 }
 

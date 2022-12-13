@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <script src="https://code.jquery.com/jquery-3.6.1.min.js" crossorigin="anonymous"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        crossorigin="anonymous">
+
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js" crossorigin="anonymous"></script>
+
+    <style>
+        #msgaddress {
+            padding: 0.1em 1em;
+            margin: 1em;
+            background-color: aliceblue;
+            color: black;
+            border-radius: 1em;
+        }
+
+        .board {
+            margin: auto;
+            width: 350px;
+        }
+
+        .board button {
+            height: 100px;
+            width: 30.47%;
+            margin: 0px;
+            padding: 0px;
+            float: left;
+            margin: 5px;
+            margin-bottom: 10px;
+            font-size: 3em;
+        }
+
+        .container {
+            height: 90vh;
+        }
+
+        .row {
+            height: 100%;
+        }
+
+        .col {
+            padding: 15px;
+        }
+    </style>
+
+</head>
+<script>
+
+    // Server domain, currently it is production
+
+    let socket = io.connect('https://smart-scrawny-cirrus.glitch.me', { transports: ['websocket'] }),
+
+        history = "";
+
+    // test();
+    var myTurn = true,
+        symbol;
+
+    let play_again_button = "<button class='btn btn-light' onclick='window.location.href = window.location.href'>Play again</button>";
+
+    function getBoardState() {
+        var obj = {};
+
+        // We will compose an object of all of the Xs and Ox
+        // that are on the board
+        $(".board button").each(function () {
+            obj[$(this).attr("id")] = $(this).text() || "";
+        });
+
+        return obj;
+    }
+
+    function isGameOver() {
+        var state = getBoardState(),
+            // One of the rows must be equal to either of these
+            // value for
+            // the game to be over
+            matches = ["XXX", "OOO"],
+            // These are all of the possible combinations
+            // that would win the game
+            rows = [
+                state.a0 + state.a1 + state.a2,
+                state.b0 + state.b1 + state.b2,
+                state.c0 + state.c1 + state.c2,
+                state.a0 + state.b1 + state.c2,
+                state.a2 + state.b1 + state.c0,
+                state.a0 + state.b0 + state.c0,
+                state.a1 + state.b1 + state.c1,
+                state.a2 + state.b2 + state.c2
+            ];
+
+        history = ""
+
+        Object.keys(state).forEach(function (key) {
+            if (state[key] === "")
+                history += "E"
+            else
+                history += state[key]
+        });
+
+        // Loop over all of the rows and check if any of them compare to either 'XXX' or 'OOO'
+        for (var i = 0; i < rows.length; i++) {
+            if (rows[i] === matches[0] || rows[i] === matches[1]) {
+                return true;
+            }
+        }
+    }
+
+    function renderTurnMessage() {
+        // Disable the board if it is the opponents turn
+        if (!myTurn) {
+            $("#messages").text("Your opponent's turn");
+            $(".board button").attr("disabled", true);
+
+            // Enable the board if it is your turn
+        } else {
+            $("#messages").text("Your turn.");
+            $(".board button").removeAttr("disabled");
+        }
+    }
+
+    function makeMove(e) {
+        e.preventDefault();
+
+        // It's not your turn
+        if (!myTurn) {
+            return;
+        }
+
+        // The space is already checked
+        if ($(this).text().length) {
+            return;
+        }
+
+        // Emit the move to the server
+        socket.emit("make.move", {
+            symbol: symbol,
+            position: $(this).attr("id")
+        });
+    }
+
+    // Event is called when either player makes a move
+    socket.on("move.made", function (data) {
+        // Render the move
+        $("#" + data.position).text(data.symbol);
+
+        // If the symbol is the same as the player's symbol,
+        // we can assume it is their turn
+        myTurn = data.symbol !== symbol;
+
+        // If the game is still going, show who's turn it is
+        if (!isGameOver()) {
+            renderTurnMessage();
+
+            // If the game is over
+        } else {
+            // Show the message for the loser
+            if (myTurn) {
+                $("#messages").html("Game over. You lost." + play_again_button);
+
+                // Show the message for the winner
+            } else {
+                $("#messages").text("Game over. You won!").attr('history', symbol + history).attr('status', 'winner');
+            }
+
+            // Disable the board
+            $(".board button").attr("disabled", true);
+        }
+    });
+
+    // Set up the initial state when the game begins
+    socket.on("game.begin", function (data) {
+        // The server will asign X or O to the player
+        symbol = data.symbol;
+
+        // Give X the first turn
+        myTurn = symbol === "X";
+        renderTurnMessage();
+    });
+
+    // Disable the board if the opponent leaves
+    socket.on("opponent.left", function () {
+        $("#messages").html("Your opponent left the game." + play_again_button);
+        $(".board button").attr("disabled", true);
+    });
+
+    $(function () {
+        $(".board button").attr("disabled", true);
+        $(".board> button").on("click", makeMove);
+    });
+</script>
+
+<body>
+    <nav class="navbar navbar-dark bg-dark" style="padding:0 1em;">
+        <a class="navbar-brand" href="/game.html">Tic Tac Toe Game</a>
+
+        <span class="navbar-text">
+            <span id="balance">
+                0.0 CELO
+            </span>
+            <a href="/profile.html">
+                <span id="msgaddress">
+                    address
+                </span>
+            </a>
+        </span>
+    </nav>
+
+    <div class="alert alert-warning tops" role="alert">
+        <span id="notification">Loading</span>
+    </div>
+
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col col-md-6 align-self-center">
+                <div class="alert alert-dark" style="width: 350px;margin: auto; margin-bottom: 1em;" role="alert">
+                    <div id="messages">Waiting for opponent to join...</div>
+                </div>
+                <div class="board">
+                    <button id="a0"></button> <button id="a1"></button> <button id="a2"></button>
+                    <button id="b0"></button> <button id="b1"></button> <button id="b2"></button>
+                    <button id="c0"></button> <button id="c1"></button> <button id="c2"></button>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script type="text/javascript" src="gameEntry.js"></script></body>
+
+</html>

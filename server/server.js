@@ -9,6 +9,8 @@ const server = http.Server(app).listen(5000),
   io = socketIo(server),
   clients = {};
 
+// const allowed_domain = "https://sage-toffee-de617f.netlify.app";
+
 const allowed_domain = "http://localhost:3000";
 
 const path = './wins.json',

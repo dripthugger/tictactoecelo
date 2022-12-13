@@ -128,6 +128,8 @@ node index.js
 
 ```
 
+In addition we need to recompile contracts and enter NFT contract owner's private key to .env file (/client/.env) to sign transactions
+
 # Build
 
 ```
