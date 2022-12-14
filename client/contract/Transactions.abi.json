@@ -61,6 +61,16 @@
 				"internalType": "string",
 				"name": "win_history",
 				"type": "string"
+			},
+			{
+				"internalType": "bytes32",
+				"name": "_h",
+				"type": "bytes32"
+			},
+			{
+				"internalType": "bytes",
+				"name": "_s",
+				"type": "bytes"
 			}
 		],
 		"name": "withdraw",

@@ -6,7 +6,7 @@ import TICTACTOENFT from "../contract/tictactoenft.abi.json";
 const ERC20_DECIMALS = 18;
 
 // contract address to work with transactions(deposit, withdraw funds...)
-const transactions_address = "0xdBD29f8F2cB9F8c3E04dB2c427f387241241504d";
+const transactions_address = "0x536027BB7bC7Bb5b680115EC8168F528d9e0375f";
 
 // contract address to manipulate with nft's
 const nft_address = "0xA3eF0dE76F4Cb11fb618427DbD47B825A09de696";
@@ -162,7 +162,7 @@ const getBalance = async function () {
 const rewardUser = async function (history) {
   notification("Please, confirm reward in your wallet");
   let amount = 0.1 * Math.pow(10, 18);
-  await contract.methods.withdraw(kit.defaultAccount.toString(), amount.toString(), history)
+  await contract.methods.withdraw(kit.defaultAccount.toString(), amount.toString(), history, signature.messageHash, signature.signature)
     .send({ from: kit.defaultAccount.toString() })
     .then(async function (receipt) {
       notification("Waiting for contract confirmations");
