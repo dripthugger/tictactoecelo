@@ -19,6 +19,8 @@ WALLET REQUIRED TO TEST THIS DAPP IS [CELO EXTENSION WALLET](https://chrome.goog
 
 https://sage-toffee-de617f.netlify.app
 
+In addition, production server source - https://glitch.com/~smart-scrawny-cirrus
+
 ## Site review
 
 ```
