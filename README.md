@@ -14,6 +14,11 @@ Also there are achievements players can complete(win 5 times, win 10 times). For
 ##NOTE
 WALLET REQUIRED TO TEST THIS DAPP IS [CELO EXTENSION WALLET](https://chrome.google.com/webstore/detail/celoextensionwallet/kkilomkmpmkbdnfelcpgckmpcaemjcdh?hl=en)
 
+
+## Live Demo
+
+https://sage-toffee-de617f.netlify.app
+
 ## Site review
 
 ```
